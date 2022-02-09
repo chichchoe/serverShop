@@ -1,17 +1,30 @@
-# Image source
-FROM node:10-alpine
+FROM node:12.19.0-alpine3.9 AS development
 
-# Docker working directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copying file into APP directory of docker
-COPY ./package.json ./package-lock.json /app/
+COPY package*.json ./
 
-# Then install the NPM module
-RUN npm install
+RUN npm install glob rimraf
 
-# Copy current directory to APP folder
-COPY . /app/
+RUN npm install --only=development
 
-EXPOSE 2020
-CMD ["npm", "run", "start:dev"]
+COPY . .
+
+RUN npm run build
+
+FROM node:12.19.0-alpine3.9 as production
+
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN npm install --only=production
+
+COPY . .
+
+COPY --from=development /usr/src/app/dist ./dist
+
+CMD ["node", "dist/main"]

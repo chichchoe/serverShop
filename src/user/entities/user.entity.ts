@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
-export class SpaceShip {
+@Entity('user_info')
+export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -12,11 +12,11 @@ export class SpaceShip {
   description: string;
 
   @Column()
-  filename: string;
+  phone: string;
 
   @Column('int')
-  views: number;
+  age: number;
 
   @Column()
-  isPublished: boolean;
+  isActive: boolean;
 }

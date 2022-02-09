@@ -11,7 +11,7 @@ import {
 import { SpaceShipService } from './space-ship.service';
 import { CreateSpaceShipDto } from './dto/create-space-ship.dto';
 import { UpdateSpaceShipDto } from './dto/update-space-ship.dto';
-import { SpaceShipValidatorPipe } from './SpaceShipValidatorPipe';
+import { SpaceShipValidatorPipe } from './spaceShipValidatorPipe';
 
 @Controller('space-ship')
 export class SpaceShipController {
