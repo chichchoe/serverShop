@@ -6,8 +6,8 @@ import { SpaceShipModule } from './space-ship/space-ship.module';
 import configuration from './config/configuration';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SpaceShip } from './space-ship/entities/space-ship.entity';
-import { UserModule } from './user/user.module';
-import { User } from './user/entities/user.entity';
+import { FeedModule } from './feed/feed.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -22,12 +22,14 @@ import { User } from './user/entities/user.entity';
       username: process.env.DATABASE_USER,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [SpaceShip, User],
+      // entities: [SpaceShip],
+      autoLoadEntities: true,
       synchronize: true, // shouldn't be used in production - may lose data
       keepConnectionAlive: true,
     }),
     SpaceShipModule,
-    UserModule,
+    AuthModule,
+    FeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],
