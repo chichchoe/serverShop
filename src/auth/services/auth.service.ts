@@ -1,12 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { from, map, Observable, of, switchMap, tap } from 'rxjs';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { UserEntity } from '../models/user.entity';
-import { User } from '../models/user.interface';
+import { RefreshToken, User } from '../models/user.interface';
 
 @Injectable()
 export class AuthService {
@@ -16,90 +15,75 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  hashPassword(password: string): Observable<unknown> {
-    return from(bcrypt.hash(password, 12));
-  }
-  doesUserExist(email: string): Observable<boolean> {
-    return from(this.userRepository.findOne({ where: { email } })).pipe(
-      switchMap((user: User) => {
-        return of(!!user);
-      }),
-    );
-  }
-
-  signUp(createdUser: User): Observable<User> {
+  async signUp(createdUser: User): Promise<User> {
     const { firstName, lastName, email, password } = createdUser;
-    return this.doesUserExist(email).pipe(
-      tap((doesUserExist: boolean) => {
-        if (doesUserExist)
-          throw new HttpException(
-            'A user has already been created with this email address',
-            HttpStatus.BAD_REQUEST,
-          );
-      }),
-      switchMap(() => {
-        return this.hashPassword(password).pipe(
-          switchMap((hashedPassword: string) => {
-            return from(
-              this.userRepository.save({
-                firstName,
-                lastName,
-                email,
-                password: hashedPassword,
-              }),
-            ).pipe(
-              map((user: User) => {
-                delete user.password;
-                delete user.id;
-                return user;
-              }),
-            );
-          }),
+    try {
+      const findEmail = await this.userRepository.findOne({ where: { email } });
+      if (findEmail && findEmail.id) {
+        throw new HttpException(
+          'A user has already been created with this email address',
+          HttpStatus.BAD_REQUEST,
         );
-      }),
-    );
+      }
+      const hashedPassword = await bcrypt.hash(password, 12);
+      const saveUser: User = await this.userRepository.save({
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+      });
+      delete saveUser.password;
+      delete saveUser.id;
+      delete saveUser.hashedRefreshToken;
+      return saveUser;
+    } catch (error) {
+      throw new HttpException(
+        { status: HttpStatus.INTERNAL_SERVER_ERROR, error: error },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  validateUser(email: string, password: string) {
-    return from(
-      this.userRepository.findOne(
+  async validateUser(email: string, password: string): Promise<User> {
+    try {
+      const user: User = await this.userRepository.findOne(
         { email },
         {
           select: ['id', 'firstName', 'lastName', 'email', 'password', 'role'],
         },
-      ),
-    ).pipe(
-      switchMap((user: User) => {
-        if (!user) {
-          throw new HttpException(
-            { status: HttpStatus.FORBIDDEN, error: 'Invalid Credentials' },
-            HttpStatus.FORBIDDEN,
-          );
-        }
-        return from(bcrypt.compare(password, user.password)).pipe(
-          map((isValidPassword: boolean) => {
-            if (isValidPassword) {
-              delete user.password;
-              return user;
-            }
-          }),
+      );
+      if (!user) {
+        throw new HttpException(
+          { status: HttpStatus.FORBIDDEN, error: 'Invalid Credentials' },
+          HttpStatus.FORBIDDEN,
         );
-      }),
-    );
+      }
+      const hashPassword = await bcrypt.compare(password, user.password);
+      if (hashPassword) {
+        delete user.password;
+        return user;
+      }
+    } catch (error) {
+      throw new HttpException(
+        { status: HttpStatus.INTERNAL_SERVER_ERROR, error: error },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  login(user: User): Observable<object> {
+  async login(
+    user: User,
+  ): Promise<{ token: string; refreshToken: string; user: User }> {
     const { email, password } = user;
-    return this.validateUser(email, password).pipe(
-      switchMap((user: User) => {
-        if (User) {
-          return from(this.jwtService.signAsync({ user })).pipe(
-            map((token: string) => {
-              return { token, user: user };
-            }),
-          );
-        }
-      }),
-    );
+    const findUser = await this.validateUser(email, password);
+    if (findUser) {
+      const token = await this.jwtService.signAsync({ user });
+      const refreshToken = await bcrypt.hash(String(user), 12);
+      return { token, refreshToken, user: findUser };
+    }
+  }
+  async refreshToken(refresh: RefreshToken) {
+    // const token = await bcrypt.compare(password, user.password)
+    return '';
   }
 }

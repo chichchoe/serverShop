@@ -12,5 +12,9 @@ export class User {
   password?: string;
   imagePath?: string;
   role?: Role;
+  hashedRefreshToken?: string;
   posts?: FeedPost[];
+}
+export class RefreshToken {
+  refresh_token?: string;
 }

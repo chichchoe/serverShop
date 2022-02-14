@@ -8,6 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SpaceShip } from './space-ship/entities/space-ship.entity';
 import { FeedModule } from './feed/feed.module';
 import { AuthModule } from './auth/auth.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AuthModule } from './auth/auth.module';
     SpaceShipModule,
     AuthModule,
     FeedModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],

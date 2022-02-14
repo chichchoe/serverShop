@@ -14,7 +14,9 @@ import { UpdateFeedDto } from '../dto/update-feed.dto';
 import { JwtGuard } from '../../auth/guards/jwt.guard';
 import { Observable } from 'rxjs';
 import { FeedPost } from '../models/post.interface';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Feed')
 @Controller('feed')
 export class FeedController {
   constructor(private readonly feedService: FeedService) {}
@@ -26,12 +28,12 @@ export class FeedController {
   }
 
   @Get()
-  findAll() {
+  findAll(): Promise<FeedPost[]> {
     return this.feedService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): Promise<FeedPost> {
     return this.feedService.findOne(+id);
   }
 

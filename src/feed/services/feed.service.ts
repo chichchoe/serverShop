@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { from, Observable } from 'rxjs';
 import { User } from 'src/auth/models/user.interface';
@@ -19,12 +19,26 @@ export class FeedService {
     return from(this.feedRepository.save(feedPost));
   }
 
-  findAll() {
-    return `This action returns all feed`;
+  findAll(): Promise<FeedPost[]> {
+    return this.feedRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} feed`;
+  async findOne(id: number): Promise<FeedPost> {
+    try {
+      const findId = await this.feedRepository.findOne(id);
+      if (findId && findId.id) {
+        return findId;
+      }
+      throw new HttpException(
+        'A user has already been created with this email address',
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (error) {
+      throw new HttpException(
+        { status: HttpStatus.INTERNAL_SERVER_ERROR, error: error },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   update(id: number, updateFeedDto: UpdateFeedDto) {

@@ -2,6 +2,7 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Role } from './role.enum';
 import { FeedPostEntity } from '../../feed/entities/feed.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity('user_account')
 export class UserEntity {
@@ -25,6 +26,10 @@ export class UserEntity {
 
   @Column({ type: 'enum', enum: Role, default: Role.USER })
   role: Role;
+
+  @Column({ nullable: true })
+  @Exclude()
+  public hashedRefreshToken?: string;
 
   @OneToMany(() => FeedPostEntity, (feedPostEntity) => feedPostEntity.author)
   feedPosts: FeedPostEntity[];
