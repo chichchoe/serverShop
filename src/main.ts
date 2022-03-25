@@ -10,6 +10,8 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get('PORT');
 
+  app.enableCors();
+
   const config = new DocumentBuilder()
     .setTitle('Shop example')
     .setDescription('The Shop API description')

@@ -1,89 +1,65 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-
-import { UserEntity } from '../models/user.entity';
-import { RefreshToken, User } from '../models/user.interface';
+import { UserService } from '../../user/services/user.service';
+import { UserModel } from 'src/user/models/user.model';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
+    private usersService: UserService,
     private jwtService: JwtService,
   ) {}
 
-  async signUp(createdUser: User): Promise<User> {
-    const { firstName, lastName, email, password } = createdUser;
+  async authLogin(user: UserModel) {
     try {
-      const findEmail = await this.userRepository.findOne({ where: { email } });
-      if (findEmail && findEmail.id) {
-        throw new HttpException(
-          'A user has already been created with this email address',
-          HttpStatus.BAD_REQUEST,
-        );
+      const infoUser = await this.usersService.login(
+        user.username,
+        user.password,
+      );
+      if (infoUser) {
+        const payload = { ...infoUser, sub: infoUser.id };
+        return {
+          accessToken: this.jwtService.sign(payload),
+          refreshToken: await this.generateRefreshToken(infoUser.id),
+        };
       }
-      const hashedPassword = await bcrypt.hash(password, 12);
-      const saveUser: User = await this.userRepository.save({
-        firstName,
-        lastName,
-        email,
-        password: hashedPassword,
-      });
-      delete saveUser.password;
-      delete saveUser.id;
-      delete saveUser.hashedRefreshToken;
-      return saveUser;
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     } catch (error) {
       throw new HttpException(
-        { status: HttpStatus.INTERNAL_SERVER_ERROR, error: error },
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        'Invalid username or password',
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
 
-  async validateUser(email: string, password: string): Promise<User> {
+  async authRefreshtoken(user: UserModel) {
     try {
-      const user: User = await this.userRepository.findOne(
-        { email },
-        {
-          select: ['id', 'firstName', 'lastName', 'email', 'password', 'role'],
-        },
-      );
-      if (!user) {
-        throw new HttpException(
-          { status: HttpStatus.FORBIDDEN, error: 'Invalid Credentials' },
-          HttpStatus.FORBIDDEN,
-        );
+      const infoUser = await this.usersService.findUser(user.username);
+      if (infoUser) {
+        const payload = { ...infoUser, sub: infoUser.id };
+        return {
+          accessToken: this.jwtService.sign(payload),
+          refreshToken: await this.generateRefreshToken(infoUser.id),
+        };
       }
-      const hashPassword = await bcrypt.compare(password, user.password);
-      if (hashPassword) {
-        delete user.password;
-        return user;
-      }
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     } catch (error) {
       throw new HttpException(
-        { status: HttpStatus.INTERNAL_SERVER_ERROR, error: error },
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        'Invalid username or password',
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
 
-  async login(
-    user: User,
-  ): Promise<{ token: string; refreshToken: string; user: User }> {
-    const { email, password } = user;
-    const findUser = await this.validateUser(email, password);
-    if (findUser) {
-      const token = await this.jwtService.signAsync({ user });
-      const refreshToken = await bcrypt.hash(String(user), 12);
-      return { token, refreshToken, user: findUser };
-    }
-  }
-  async refreshToken(refresh: RefreshToken) {
-    // const token = await bcrypt.compare(password, user.password)
-    return '';
+  async generateRefreshToken(userId): Promise<string> {
+    const refreshToken = 'abcdefghijklmnopqrstuvwxyz1234567890';
+    const expirydate = new Date();
+    expirydate.setDate(expirydate.getDate() + 6);
+    await this.usersService.saveOrUpdateRefreshToken(
+      refreshToken,
+      userId,
+      expirydate,
+    );
+    return refreshToken;
   }
 }

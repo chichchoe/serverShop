@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm install glob rimraf
+RUN npm cache clean --force && rm -rf node_modules 
 
 RUN npm install --only=development
 

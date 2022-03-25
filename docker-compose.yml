@@ -10,31 +10,18 @@ services:
             dockerfile: ./Dockerfile
         command: npm run start:debug
         ports:
-            - 2020:2020
-            - 9229:9229
-        networks:
-            - nesjs-network
-        volumes:
-            - .:/usr/src/app
-            - /usr/src/app/node_modules
-        restart: unless-stopped
-    prod:
-        container_name: sever_shop_prod
-        image: sever_shop_prod:1.0.0
-        build:
-            context: .
-            target: production
-            dockerfile: ./Dockerfile
-        command: npm run start:prod
+            - "2020:2020"
+        environment:
+          DATABASE_URL: postgresql://postgres:123456@postgres:5432/postgres
+          NODE_ENV: development
+          PORT: 2020
+        
+    postgres:
+        image: postgres:10.4
         ports:
-            - 2020:2020
-            - 9229:9229
-        networks:
-            - nesjs-network
-        volumes:
-            - .:/usr/src/app
-            - /usr/src/app/node_modules
-        restart: unless-stopped
-networks:
-    nesjs-network:
-  
+            - "5432:5432"
+        environment: 
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: 123456
+            POSTGRES_DB: postgres
+       
