@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../../user/services/user.service';
 import { UserModel } from 'src/user/models/user.model';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -35,6 +36,10 @@ export class AuthService {
   async authRefreshtoken(user: UserModel) {
     try {
       const infoUser = await this.usersService.findUser(user.username);
+      delete infoUser.refresh_token;
+      delete infoUser.expiresIn;
+      delete infoUser.id;
+
       if (infoUser) {
         const payload = { ...infoUser, sub: infoUser.id };
         return {
@@ -52,9 +57,12 @@ export class AuthService {
   }
 
   async generateRefreshToken(userId): Promise<string> {
-    const refreshToken = 'abcdefghijklmnopqrstuvwxyz1234567890';
     const expirydate = new Date();
     expirydate.setDate(expirydate.getDate() + 6);
+    const refreshToken = await bcrypt.hash(
+      String(userId) + String(expirydate),
+      12,
+    );
     await this.usersService.saveOrUpdateRefreshToken(
       refreshToken,
       userId,

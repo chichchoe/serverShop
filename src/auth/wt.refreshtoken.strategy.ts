@@ -19,7 +19,6 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
 
   async validate(req, payload: any) {
     const user = await this.userService.findUser(payload.username);
-    console.log((await user).refresh_token);
     if (!user) {
       throw new UnauthorizedException();
     }

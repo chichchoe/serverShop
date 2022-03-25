@@ -28,7 +28,7 @@ export class CommodityService {
   async findAll(query: ListAllEntities) {
     const { skip, limit, price, color, filterColor } = query;
     const filter = filterColor ? [...filterColor] : [];
-    const data = await this.commodityRepository.find({
+    const data = await this.commodityRepository.findAndCount({
       skip: skip,
       take: limit,
       cache: true,
@@ -38,18 +38,15 @@ export class CommodityService {
         price: price,
       },
     });
-    const sum = await this.commodityRepository.count({
-      where: [...filter],
-    });
     const findColor = await this.commodityRepository
       .createQueryBuilder('commodity')
       .select('color')
       .distinct()
       .getRawMany();
     return {
-      total: sum,
+      total: data[1],
       color: findColor,
-      data,
+      data: data[0],
     };
   }
 

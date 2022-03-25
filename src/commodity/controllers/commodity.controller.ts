@@ -7,7 +7,9 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import {
   CreateCommodityDto,
@@ -34,6 +36,7 @@ export class CommodityController {
   }
 
   @Get()
+  // @UseGuards(AuthGuard('jwt'))
   @ApiQuery({
     name: 'skip',
     required: true,

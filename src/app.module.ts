@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommodityModule } from './commodity/commodity.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { PhotoModule } from './photo/photo.module';
 
 @Module({
   imports: [
@@ -16,12 +17,12 @@ import { AuthModule } from './auth/auth.module';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      // host: process.env.POSTGRES_HOST,
-      // port: parseInt(<string>process.env.POSTGRES_PORT),
-      // username: process.env.DATABASE_USER,
-      // password: process.env.DATABASE_PASSWORD,
-      // database: process.env.DB_NAME,
-      url: process.env.DATABASE_URL,
+      host: process.env.POSTGRES_HOST,
+      port: parseInt(<string>process.env.POSTGRES_PORT),
+      username: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASSWORD,
+      database: process.env.DB_NAME,
+      // url: process.env.DATABASE_URL,
       autoLoadEntities: true,
       synchronize: true, // shouldn't be used in production - may lose data
       keepConnectionAlive: true,
@@ -29,6 +30,7 @@ import { AuthModule } from './auth/auth.module';
     CommodityModule,
     UserModule,
     AuthModule,
+    PhotoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,7 +1,9 @@
+import { Photo } from '../../photo/entities/photo.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -24,6 +26,9 @@ export class UserEntity {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   email: string;
+
+  @OneToMany(() => Photo, (photo) => photo.user)
+  photos: Photo[];
 
   @Column({ nullable: true })
   refresh_token?: string;

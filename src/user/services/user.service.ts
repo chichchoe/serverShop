@@ -34,8 +34,17 @@ export class UserService {
   }
 
   async findOne(id: number) {
-    const findUserId = await this.userRepository.findOne({ id });
-
+    // const findUserId = await this.userRepository.findOne({
+    //   id,
+    // });
+    const findUserId = await this.userRepository
+      .createQueryBuilder('user_info')
+      .where('user_info.id = :id', { id })
+      .leftJoinAndSelect('user_info.photos', 'photo')
+      .getMany();
+    // delete findUserId.password;
+    // delete findUserId.refresh_token;
+    // delete findUserId.expiresIn;
     if (findUserId) {
       return {
         statusCode: 200,
