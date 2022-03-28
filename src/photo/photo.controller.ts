@@ -17,7 +17,10 @@ export class PhotoController {
 
   @Post()
   create(@Body() createPhotoDto: CreatePhotoDto) {
-    return this.photoService.create({ url: faker.image.avatar(), userId: 6 });
+    return this.photoService.create({
+      url: faker.image.avatar(),
+      user: 6,
+    });
   }
 
   @Get()

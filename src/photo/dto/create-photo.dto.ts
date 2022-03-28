@@ -1,4 +1,4 @@
 export class CreatePhotoDto {
   url: string;
-  userId: any;
+  user: any;
 }

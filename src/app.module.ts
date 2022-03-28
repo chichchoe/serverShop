@@ -8,6 +8,8 @@ import { CommodityModule } from './commodity/commodity.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { PhotoModule } from './photo/photo.module';
+import { CategoryModule } from './category/category.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { PhotoModule } from './photo/photo.module';
     UserModule,
     AuthModule,
     PhotoModule,
+    CategoryModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],

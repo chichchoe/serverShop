@@ -6,6 +6,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity('user_info')
 export class UserEntity {
@@ -16,6 +17,7 @@ export class UserEntity {
   username: string;
 
   @Column({ unique: true })
+  @Exclude()
   password: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })

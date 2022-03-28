@@ -31,13 +31,20 @@ export class PhotoService {
     try {
       const dataAll = await this.photoRepository
         .createQueryBuilder('photo')
-        // .leftJoinAndSelect('photo.users', 'user')
+        .leftJoinAndSelect('photo.user', 'user')
+        .select([
+          'user.id',
+          'user.username',
+          'user.email',
+          'photo.id',
+          'photo.url',
+        ])
         .getManyAndCount();
 
       return {
         statusCode: 200,
         message: 'Success',
-        data: dataAll,
+        data: dataAll[0],
       };
     } catch (error) {
       throw new HttpException('Invalid  or ', HttpStatus.BAD_REQUEST);
@@ -45,15 +52,42 @@ export class PhotoService {
     return `This action returns all photo`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} photo`;
+  async findOne(id: number) {
+    try {
+      const dataFindOne = await this.photoRepository
+        .createQueryBuilder('photo')
+        .leftJoinAndSelect('photo.user', 'user')
+        .select([
+          'user.id',
+          'user.username',
+          'user.email',
+          'photo.id',
+          'photo.url',
+        ])
+        .where('photo.id = :id', { id })
+        .getOne();
+      return {
+        statusCode: 200,
+        message: 'Success',
+        data: dataFindOne,
+      };
+    } catch (error) {
+      throw new HttpException('Invalid  or ', HttpStatus.BAD_REQUEST);
+    }
   }
 
   update(id: number, updatePhotoDto: UpdatePhotoDto) {
     return `This action updates a #${id} photo`;
   }
 
-  remove(id: number) {
+  async remove(id: number) {
+    try {
+      await this.photoRepository.delete(id);
+      return {
+        statusCode: 200,
+        message: 'Success remove',
+      };
+    } catch (error) {}
     return `This action removes a #${id} photo`;
   }
 }
